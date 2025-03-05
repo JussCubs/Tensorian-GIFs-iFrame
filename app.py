@@ -1,7 +1,6 @@
 import streamlit as st
 import traceback
 import time
-import uuid  # Add UUID for truly unique keys
 
 # Set page config must be the first Streamlit command
 st.set_page_config(
@@ -398,8 +397,7 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    # Use a simple static key since there's only one New Search button on the page
-    if st.button("↺ New Search", key="new_search_button", use_container_width=True):
+    if st.button("↺ New Search", key=f"new_search_results_view_{id(ranked_gifs)}", use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None
@@ -460,10 +458,9 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             </div>
             """, unsafe_allow_html=True)
             
-            # Add a button below the card with a stable unique key
-            # Use a combination of index and gif_id to ensure uniqueness
-            unique_button_key = f"gif_button_{i}_{gif_id}"
-            if st.button(button_label, key=unique_button_key, use_container_width=True):
+            # Add a button below the card with a truly unique key
+            unique_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}"
+            if st.button(button_label, key=unique_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
@@ -471,9 +468,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    # Back button at the top with a stable key based on the slug
-    top_button_key = f"back_top_{gif_slug}"
-    if st.button("← Back to Results", key=top_button_key, use_container_width=True):
+    # Back button at the top with unique key
+    if st.button("← Back to Results", key="back_to_results_top_button", use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
         st.rerun()
@@ -485,9 +481,8 @@ def show_gif_details(gif_slug):
     <iframe src="https://3look.io/page/tensorians/{quote(gif_slug)}" class="iframe-container"></iframe>
     """, unsafe_allow_html=True)
     
-    # Back button at the bottom with a stable key based on the slug
-    bottom_button_key = f"back_bottom_{gif_slug}"
-    if st.button("← Back to Results", key=bottom_button_key, use_container_width=True):
+    # Back button at the bottom with unique key
+    if st.button("← Back to Results", key="back_to_results_bottom_button", use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
         st.rerun()
@@ -522,7 +517,7 @@ def main():
                         value=st.session_state.get('current_tweet', ''),
                         height=200)
     
-    # Process button with a stable key
+    # Process button with unique key
     analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button_main", use_container_width=True)
     
     # Create a placeholder for the process display inside the input container

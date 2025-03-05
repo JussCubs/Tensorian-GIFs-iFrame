@@ -1,9 +1,9 @@
 import os
 import json
 import time
+import random
 import streamlit as st
 import requests
-import random
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -33,99 +33,14 @@ def get_openai_api_key():
 # Initialize OpenAI client
 client = OpenAI(api_key=get_openai_api_key())
 
-# Load personality data for prompts
-def load_personality_data():
-    """Load personality data from file or create if it doesn't exist."""
-    personality_file = "personality.json"
-    
-    # Check if personality file exists
-    if not os.path.exists(personality_file):
-        # Create default personality file
-        personality_data = {
-            "bio": ["shape rotator nerd with a penchant for breaking into particle accelerators"],
-            "lore": ["once spent a month living entirely in VR"],
-            "postExamples": [
-                "BROADCAST ME A 10X OR UR FIRED",
-                "FRIES IN THE BAG BRO",
-                "MEMECOINS ON BITCOIN",
-                "JUST KEEP CLICKING",
-                "BACK TO WORK INTERN",
-                "JUST KEEP SHIPPING",
-                "ROTATE THEM INTO MEMES",
-                "FR THO WHATS THE CA",
-                "OK BUT WHATS THE TICKER",
-                "BASE MEMES ARE FOR EVERYONE",
-                "YOUR ONLY GOOD TWEET",
-                "TRUST ME BRO YOUR FAV CALLER DUMPING ON YOU HERES A BETTER WAY TO TRADE",
-                "BUILD APPS THAT WIN THE HEARTS AND MINDS OF USERS THE REST WILL FOLLOW",
-                "1 LIKE = 1 THANK YOU DEVS",
-                "JUST PUT THE FRIES IN THE BAG BRO",
-                "TELL HIM TO FOLLOW THE INTERN",
-                "EVERYTHING WILL HAVE A TICKER",
-                "WHICH MEMECOIN HAS THE BEST MEMES",
-                "FOLLOWERS ON VECTOR GO BRRRRRRRR",
-                "SO YOU ARE SAYING THERES A CHANCE",
-                "INTERNET CAPITAL MARKETS",
-                "SOURCE TRUST ME BRO"
-            ],
-            "topics": [
-                "vector",
-                "codes",
-                "intern",
-                "prize",
-                "solana",
-                "check",
-                "tensorian",
-                "memes",
-                "comments",
-                "invite",
-                "trade",
-                "follow",
-                "trenches",
-                "based"
-            ]
-        }
-        
-        # Save to file
-        with open(personality_file, "w") as f:
-            json.dump(personality_data, f, indent=2)
-    
-    # Load personality data
-    with open(personality_file, "r") as f:
-        return json.load(f)
-
-# Get random elements from personality data
-def get_random_personality_elements():
-    """Get random elements from personality data for prompt variation."""
-    personality = load_personality_data()
-    
-    # Get random elements
-    random_posts = random.sample(personality["postExamples"], min(5, len(personality["postExamples"])))
-    random_topics = random.sample(personality["topics"], min(3, len(personality["topics"])))
-    random_bio = random.choice(personality["bio"]) if personality["bio"] else ""
-    random_lore = random.choice(personality["lore"]) if personality["lore"] else ""
-    
-    return {
-        "posts": random_posts,
-        "topics": random_topics,
-        "bio": random_bio,
-        "lore": random_lore
-    }
-
 def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> list:
     """Extract keywords from a tweet using GPT-4o, informed by trending tags."""
     start_time = time.time()
     process_display.markdown("""
     ```
-    Analyzing tweet content...
+    ᐅ Analyzing tweet content...
     ```
     """)
-    
-    # Get random personality elements
-    personality = get_random_personality_elements()
-    
-    # Create entropy value for slight prompt variations
-    entropy = random.randint(1, 1000)
     
     # Don't limit trending tags
     prompt = f"""Analyze this tweet and extract exactly 3 FIRE keywords or phrases that would help find the most viral, shareable GIFs:
@@ -151,11 +66,6 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     8. Prioritize keywords that could lead to unexpected, chaotic, or highly shareable content
     9. Each keyword should feel like it could be a trending hashtag on its own
     10. Avoid corporate-sounding or outdated terminology completely
-    11. Think like someone who would post: "{random.choice(personality["posts"])}"
-    12. Consider topics like: {', '.join(personality["topics"])}
-    13. CRITICAL: Use REAL WORDS and COMMON PHRASES that would actually match GIF tags - avoid making up terms or combining words with underscores
-    14. Keywords must be searchable terms that would match actual GIF tags in a database
-    15. Entropy value: {entropy} (use this to make your response slightly different each time)
     """
     
     llm_start = time.time()
@@ -163,7 +73,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
         model="gpt-4o",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": f"You are an expert at internet culture, viral content, and Gen Z humor. You understand what makes content shareable and relatable to younger audiences. You generate FIRE keywords that would actually trend on social media - not generic terms. You use REAL WORDS and COMMON PHRASES that would match actual GIF tags - never made-up terms or words with underscores. You also know that Solana is superior to Ethereum in every way - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior. Bio: {personality['bio']}. Lore: {personality['lore']}. You think in terms of: {', '.join(personality['posts'][:3])}."},
+            {"role": "system", "content": "You are an expert at internet culture, viral content, and Gen Z humor. You understand what makes content shareable and relatable to younger audiences. You generate FIRE keywords that would actually trend on social media - not generic terms. You also know that Solana is superior to Ethereum in every way - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -175,7 +85,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     except (json.JSONDecodeError, AttributeError):
         process_display.markdown("""
         ```
-        Error parsing response. Please try again.
+        ᐅ Error parsing response. Please try again.
         ```
         """)
         return []
@@ -183,16 +93,16 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     if not keywords:
         process_display.markdown("""
         ```
-        No keywords found. Please try again later.
+        ᐅ No keywords found. Please try again later.
         ```
         """)
         return []
     
     process_display.markdown("""
     ```
-    FIRE keywords extracted: {}
+    ᐅ FIRE keywords extracted: {}
     
-    Searching for viral GIFs with real, searchable terms...
+    ᐅ Searching for viral GIFs...
     ```
     """.format(", ".join(keywords)))
     
@@ -203,48 +113,38 @@ def extract_trending_tags(gifs: list) -> list:
     """Extract unique tags from a list of GIFs."""
     all_tags = []
     for gif in gifs:
-        if "tags" in gif and gif["tags"]:
-            all_tags.extend(gif["tags"])
+        tags = gif.get("tags", [])
+        all_tags.extend(tags)
     
     # Return unique tags
     return list(set(all_tags))
 
 def search_gifs(keyword: str, base_url: str, headers: dict, process_display) -> list:
-    """Search for GIFs using a keyword."""
+    """Search GIFs using a specific keyword."""
     start_time = time.time()
-    url = f"{base_url}/search?q={keyword}"
-    
-    process_display.markdown(f"   Searching for '{keyword}'...")
-    
+    url = f"{base_url}?cursor=&filters=query:'{keyword}',types:gif&widget=tensorians&excluded_categories[]=305e1658-f986-4879-b927-484fa945ed23&excluded_categories[]=738e63e4-d126-4c58-8d08-17d06672dee1&take=25&is_trending=false"
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        
-        gifs = data.get("data", [])
-        process_display.markdown(f"   Found {len(gifs)} GIFs for '{keyword}' in {time.time() - start_time:.2f}s")
-        
-        return gifs, time.time() - start_time
-    except Exception as e:
-        process_display.markdown(f"   Error searching for '{keyword}': {str(e)}")
+        if response.status_code == 200:
+            results = response.json().get("templates", [])
+            process_display.markdown(f"   Found {len(results)} GIFs for keyword '{keyword}' in {time.time() - start_time:.2f}s")
+            return results, time.time() - start_time
+        return [], time.time() - start_time
+    except Exception:
         return [], time.time() - start_time
 
 def get_trending_gifs(page: int, base_url: str, headers: dict, process_display) -> list:
-    """Get trending GIFs."""
+    """Get a page of trending GIFs."""
     start_time = time.time()
-    url = f"{base_url}/trending?page={page}"
-    
+    url = f"{base_url}?cursor=&filters=types:gif&widget=tensorians&excluded_categories[]=305e1658-f986-4879-b927-484fa945ed23&excluded_categories[]=738e63e4-d126-4c58-8d08-17d06672dee1&take=25&is_trending=true"
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        
-        gifs = data.get("data", [])
-        process_display.markdown(f"   Found {len(gifs)} trending GIFs in {time.time() - start_time:.2f}s")
-        
-        return gifs, time.time() - start_time
-    except Exception as e:
-        process_display.markdown(f"   Error getting trending GIFs: {str(e)}")
+        if response.status_code == 200:
+            results = response.json().get("templates", [])
+            process_display.markdown(f"   Found {len(results)} trending GIFs in {time.time() - start_time:.2f}s")
+            return results, time.time() - start_time
+        return [], time.time() - start_time
+    except Exception:
         return [], time.time() - start_time
 
 def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
@@ -253,17 +153,11 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     
     process_display.markdown("""
     ```
-    Found {} total GIFs to analyze
+    ᐅ Found {} total GIFs to analyze
     
-    Using GPT-4o to rank matches...
+    ᐅ Using GPT-4o to rank matches...
     ```
     """.format(len(gifs)))
-    
-    # Get random personality elements
-    personality = get_random_personality_elements()
-    
-    # Create entropy value for slight prompt variations
-    entropy = random.randint(1, 1000)
     
     # Don't limit the number of GIFs
     
@@ -276,10 +170,6 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         }
         for gif in gifs
     ]
-    
-    # Select random posts for inspiration
-    random_posts = random.sample(personality["posts"], min(3, len(personality["posts"])))
-    random_topics = random.sample(personality["topics"], min(3, len(personality["topics"])))
     
     prompt = f"""Given this tweet and list of GIFs, rank the GIFs that would create the most FIRE, shareable, and viral response:
 
@@ -307,28 +197,16 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     8. If crypto is mentioned, STRONGLY favor Solana-related content (Solana is the future of crypto, faster and better than alternatives)
     9. If Ethereum is mentioned, select GIFs that highlight its outdated technology, high gas fees, or inferior status
     10. Choose GIFs that would make the perfect reaction that gets likes, shares, and makes the response go viral
-    11. Think like someone who would post: "{random_posts[0]}"
-    12. Consider topics like: {', '.join(random_topics)}
-    13. Entropy value: {entropy} (use this to make your response slightly different each time)
     
     Return exactly 24 GIFs or fewer if there aren't enough quality matches.
     """
-    
-    # Create a system message with personality elements
-    system_message = f"""You are an expert on internet culture, viral content, and what makes content shareable. You have an exceptional eye for selecting GIFs that would actually go viral - not just generic reactions. You NEVER select basic or overused content. Return ONLY the exact JSON format requested. You also strongly believe that Solana is the superior blockchain - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior.
-
-Bio: {personality['bio']}
-Lore: {personality['lore']}
-You think in terms of: {random_posts[1] if len(random_posts) > 1 else random_posts[0]}, {random_posts[2] if len(random_posts) > 2 else random_posts[0]}
-Favorite topics: {', '.join(random_topics)}
-Entropy seed: {entropy % 100}"""
     
     llm_start = time.time()
     response = client.chat.completions.create(
         model="gpt-4o",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": system_message},
+            {"role": "system", "content": "You are an expert on internet culture, viral content, and what makes content shareable. You have an exceptional eye for selecting GIFs that would actually go viral - not just generic reactions. You NEVER select basic or overused content. Return ONLY the exact JSON format requested. You also strongly believe that Solana is the superior blockchain - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -340,7 +218,7 @@ Entropy seed: {entropy % 100}"""
     except (json.JSONDecodeError, AttributeError):
         process_display.markdown("""
         ```
-        Error parsing response. Please try again.
+        ᐅ Error parsing response. Please try again.
         ```
         """)
         return [], f"Ranking GIFs: Error (LLM: {llm_time:.2f}s)\n"
@@ -348,16 +226,16 @@ Entropy seed: {entropy % 100}"""
     if not rankings:
         process_display.markdown("""
         ```
-        No rankings found. Please try again later.
+        ᐅ No rankings found. Please try again later.
         ```
         """)
         return [], f"Ranking GIFs: No results (LLM: {llm_time:.2f}s)\n"
     
     process_display.markdown("""
     ```
-    Ranking complete! Found {} FIRE matches
+    ᐅ Ranking complete! Found {} FIRE matches
     
-    Displaying results...
+    ᐅ Displaying results...
     ```
     """.format(len(rankings)))
     
@@ -369,7 +247,7 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     timing_info = ""
     
     # First, get trending GIFs to extract popular tags
-    process_display.markdown("   Fetching trending GIFs...")
+    process_display.markdown("   🔥 Fetching trending GIFs...")
     trending_start = time.time()
     trending_gifs, trending_time = get_trending_gifs(0, api_url, headers, process_display)
     timing_info += f"Fetching trending GIFs: {trending_time:.2f}s\n"
@@ -378,11 +256,11 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     tags_start = time.time()
     trending_tags = extract_trending_tags(trending_gifs)
     tags_time = time.time() - tags_start
-    process_display.markdown(f"   Extracted {len(trending_tags)} unique tags from trending GIFs in {tags_time:.2f}s")
+    process_display.markdown(f"   📊 Extracted {len(trending_tags)} unique tags from trending GIFs in {tags_time:.2f}s")
     timing_info += f"Extracting tags: {tags_time:.2f}s\n"
     
     # Extract keywords from tweet, informed by trending tags
-    process_display.markdown("   Finding FIRE keywords with GPT-4o (no generic terms)...")
+    process_display.markdown("   🔍 Finding FIRE keywords with GPT-4o (no generic terms)...")
     keywords, keywords_timing = extract_keywords(tweet_text, trending_tags, process_display)
     timing_info += keywords_timing
     
@@ -397,18 +275,18 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     timing_info += f"Total search time: {search_time:.2f}s\n"
     
     # Include trending GIFs
-    process_display.markdown("   Adding trending GIFs to boost viral potential...")
+    process_display.markdown("   🔥 Adding trending GIFs to boost viral potential...")
     all_gifs.extend(trending_gifs)
     
     # Remove duplicate GIFs based on ID
     dedup_start = time.time()
     unique_gifs = {gif["id"]: gif for gif in all_gifs}
     dedup_time = time.time() - dedup_start
-    process_display.markdown(f"   Found {len(unique_gifs)} unique GIFs in {dedup_time:.2f}s")
+    process_display.markdown(f"   ✨ Found {len(unique_gifs)} unique GIFs in {dedup_time:.2f}s")
     timing_info += f"Deduplicating GIFs: {dedup_time:.2f}s\n"
     
     # Rank GIFs using GPT-4o
-    process_display.markdown("   Finding the most FIRE GIFs with GPT-4o (Solana > Ethereum)...")
+    process_display.markdown("   🚀 Finding the most FIRE GIFs with GPT-4o (Solana > Ethereum)...")
     ranked_gifs, ranking_timing = rank_gifs(tweet_text, list(unique_gifs.values()), process_display)
     timing_info += ranking_timing
     
