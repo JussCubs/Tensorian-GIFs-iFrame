@@ -556,7 +556,7 @@ def main():
     st.markdown("""
     <div class="header">
         <h1>Tensorians GIF Maker 😈</h1>
-        <p>Enter a tweet and get AI-powered GIF suggestions.</p>
+        <p>Enter a tweet you want to reply to, or any topic you want a GIF for.</p>
     </div>
     """, unsafe_allow_html=True)
     
