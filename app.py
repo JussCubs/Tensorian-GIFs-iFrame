@@ -16,13 +16,35 @@ from ai_utils import process_tweet_and_rank_gifs
 # Custom CSS
 st.markdown("""
 <style>
+    :root {
+        --primary-color: #0100FF;
+        --primary-light: #3D3DFF;
+        --primary-dark: #0000CC;
+        --primary-bg: #F0F0FF;
+        --text-on-primary: #FFFFFF;
+        --text-light: #F0F0FF;
+    }
+    
     .main {
         padding: 2rem;
+        background-color: var(--primary-bg);
     }
-    h1 {
-        color: #1E88E5;
+    
+    h1, h2, h3 {
+        color: var(--primary-color);
         margin-bottom: 1rem;
     }
+    
+    .stButton button {
+        background-color: var(--primary-color) !important;
+        color: var(--text-on-primary) !important;
+        border: none !important;
+    }
+    
+    .stButton button:hover {
+        background-color: var(--primary-dark) !important;
+    }
+    
     .gif-card {
         border: 1px solid #e0e0e0;
         border-radius: 8px;
@@ -36,10 +58,13 @@ st.markdown("""
         flex-direction: column;
         cursor: pointer;
     }
+    
     .gif-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        border-color: var(--primary-color);
     }
+    
     .gif-preview-container {
         width: 100%;
         height: 400px;
@@ -52,45 +77,51 @@ st.markdown("""
         align-items: center;
         justify-content: center;
     }
+    
     .gif-preview {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
         border-radius: 4px;
     }
+    
     .gif-card h3 {
         font-size: 1rem;
         margin: 0.5rem 0;
-        color: #333;
+        color: var(--primary-color);
     }
+    
     .nft-count {
         display: inline-block;
-        background-color: #f0f7ff;
-        color: #1565C0;
+        background-color: var(--primary-bg);
+        color: var(--primary-color);
         padding: 0.2rem 0.5rem;
         border-radius: 4px;
         font-size: 0.8rem;
         margin-bottom: 0.5rem;
     }
+    
     .tags-container {
         margin: 0.5rem 0;
         max-height: 60px;
         overflow-y: auto;
     }
+    
     .tag {
         display: inline-block;
-        background-color: #f5f5f5;
-        color: #666;
+        background-color: var(--primary-bg);
+        color: var(--primary-dark);
         padding: 0.1rem 0.4rem;
         border-radius: 3px;
         font-size: 0.7rem;
         margin-right: 0.3rem;
         margin-bottom: 0.3rem;
     }
+    
     .view-button {
         display: inline-block;
-        background-color: #1E88E5;
-        color: white;
+        background-color: var(--primary-color);
+        color: var(--text-on-primary);
         padding: 0.7rem 1rem;
         border-radius: 4px;
         text-decoration: none;
@@ -102,26 +133,30 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
+    
     .view-button:hover {
-        background-color: #1565C0;
+        background-color: var(--primary-dark);
     }
+    
     .keywords {
-        background-color: #f0f7ff;
+        background-color: var(--primary-bg);
         padding: 0.5rem 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-        border-left: 3px solid #1E88E5;
+        border-left: 3px solid var(--primary-color);
     }
+    
     .keyword-tag {
         display: inline-block;
-        background-color: #e3f2fd;
-        color: #1565C0;
+        background-color: var(--primary-color);
+        color: var(--text-on-primary);
         padding: 0.3rem 0.6rem;
         border-radius: 20px;
         margin-right: 0.5rem;
         font-size: 0.9rem;
-        border: 1px solid #bbdefb;
+        border: 1px solid var(--primary-light);
     }
+    
     .iframe-container {
         width: 100%;
         height: 80vh;
@@ -129,19 +164,36 @@ st.markdown("""
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+    
     .timing-info {
         font-family: monospace;
-        background-color: #f5f5f5;
+        background-color: var(--primary-bg);
         padding: 0.5rem;
         border-radius: 4px;
         margin-bottom: 1rem;
         font-size: 0.9rem;
-        color: #333;
-        border-left: 3px solid #666;
+        color: var(--primary-dark);
+        border-left: 3px solid var(--primary-color);
     }
+    
     /* Hide the streamlit button label */
     .gif-button-container {
         display: none !important;
+    }
+    
+    /* Style the text area */
+    .stTextArea textarea {
+        border-color: var(--primary-color) !important;
+    }
+    
+    .stTextArea textarea:focus {
+        border-color: var(--primary-dark) !important;
+        box-shadow: 0 0 0 1px var(--primary-light) !important;
+    }
+    
+    /* Style the app background */
+    .stApp {
+        background-color: var(--primary-bg);
     }
 </style>
 """, unsafe_allow_html=True)
