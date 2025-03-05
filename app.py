@@ -398,8 +398,9 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    # Use UUID for guaranteed uniqueness
-    unique_key = f"new_search_{str(uuid.uuid4())}"
+    # Use a stable key with a hash of the ranked_gifs to ensure uniqueness between different result sets
+    results_hash = str(hash(str(ranked_gifs)))[:10] if ranked_gifs else "0"
+    unique_key = f"new_search_button_{results_hash}"
     if st.button("↺ New Search", key=unique_key, use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
@@ -461,9 +462,9 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             </div>
             """, unsafe_allow_html=True)
             
-            # Add a button below the card with a truly unique key
-            # Use UUID for guaranteed uniqueness
-            unique_button_key = f"gif_button_{str(uuid.uuid4())}"
+            # Add a button below the card with a stable unique key
+            # Use a combination of index and gif_id to ensure uniqueness
+            unique_button_key = f"gif_button_{i}_{gif_id}"
             if st.button(button_label, key=unique_button_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
@@ -472,8 +473,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    # Back button at the top with unique key using UUID
-    top_button_key = f"back_top_{str(uuid.uuid4())}"
+    # Back button at the top with a stable key based on the slug
+    top_button_key = f"back_top_{gif_slug}"
     if st.button("← Back to Results", key=top_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
@@ -486,8 +487,8 @@ def show_gif_details(gif_slug):
     <iframe src="https://3look.io/page/tensorians/{quote(gif_slug)}" class="iframe-container"></iframe>
     """, unsafe_allow_html=True)
     
-    # Back button at the bottom with unique key using UUID
-    bottom_button_key = f"back_bottom_{str(uuid.uuid4())}"
+    # Back button at the bottom with a stable key based on the slug
+    bottom_button_key = f"back_bottom_{gif_slug}"
     if st.button("← Back to Results", key=bottom_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
@@ -523,9 +524,8 @@ def main():
                         value=st.session_state.get('current_tweet', ''),
                         height=200)
     
-    # Process button with unique key using UUID for guaranteed uniqueness
-    analyze_button_key = f"analyze_button_{str(uuid.uuid4())}"
-    analyze_clicked = st.button("Analyze & Find GIFs", key=analyze_button_key, use_container_width=True)
+    # Process button with a stable key
+    analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button_main", use_container_width=True)
     
     # Create a placeholder for the process display inside the input container
     process_display = st.empty()
