@@ -398,10 +398,8 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    # Use a stable key with a hash of the ranked_gifs to ensure uniqueness between different result sets
-    results_hash = str(hash(str(ranked_gifs)))[:10] if ranked_gifs else "0"
-    unique_key = f"new_search_button_{results_hash}"
-    if st.button("↺ New Search", key=unique_key, use_container_width=True):
+    # Use a simple static key since there's only one New Search button on the page
+    if st.button("↺ New Search", key="new_search_button", use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None

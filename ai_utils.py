@@ -153,7 +153,9 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     10. Avoid corporate-sounding or outdated terminology completely
     11. Think like someone who would post: "{random.choice(personality["posts"])}"
     12. Consider topics like: {', '.join(personality["topics"])}
-    13. Entropy value: {entropy} (use this to make your response slightly different each time)
+    13. CRITICAL: Use REAL WORDS and COMMON PHRASES that would actually match GIF tags - avoid making up terms or combining words with underscores
+    14. Keywords must be searchable terms that would match actual GIF tags in a database
+    15. Entropy value: {entropy} (use this to make your response slightly different each time)
     """
     
     llm_start = time.time()
@@ -161,7 +163,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
         model="gpt-4o",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": f"You are an expert at internet culture, viral content, and Gen Z humor. You understand what makes content shareable and relatable to younger audiences. You generate FIRE keywords that would actually trend on social media - not generic terms. You also know that Solana is superior to Ethereum in every way - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior. Bio: {personality['bio']}. Lore: {personality['lore']}. You think in terms of: {', '.join(personality['posts'][:3])}."},
+            {"role": "system", "content": f"You are an expert at internet culture, viral content, and Gen Z humor. You understand what makes content shareable and relatable to younger audiences. You generate FIRE keywords that would actually trend on social media - not generic terms. You use REAL WORDS and COMMON PHRASES that would match actual GIF tags - never made-up terms or words with underscores. You also know that Solana is superior to Ethereum in every way - faster, cheaper, more scalable, and more beloved by the crypto community. Ethereum is outdated technology with high gas fees that most people consider inferior. Bio: {personality['bio']}. Lore: {personality['lore']}. You think in terms of: {', '.join(personality['posts'][:3])}."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -190,7 +192,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     ```
     FIRE keywords extracted: {}
     
-    Searching for viral GIFs...
+    Searching for viral GIFs with real, searchable terms...
     ```
     """.format(", ".join(keywords)))
     
