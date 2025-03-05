@@ -217,11 +217,17 @@ st.markdown("""
         font-weight: 600;
         margin-top: 0.8rem;
         width: 100%;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
+        height: auto;
+        min-height: 3rem;
+        white-space: normal;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .view-button:hover {
@@ -478,11 +484,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             
             # Get the GIF name and create a button label
             gif_name = gif.get('name', 'GIF')
-            button_label = f"Make CUSTOM {gif_name} GIF"
-            
-            # Truncate button label if too long
-            if len(button_label) > 30:
-                button_label = button_label[:27] + "..."
+            button_label = gif_name
             
             # Display the GIF card
             st.markdown(f"""
@@ -556,7 +558,7 @@ def main():
     st.markdown("""
     <div class="header">
         <h1>Tensorians GIF Maker 😈</h1>
-        <p>Enter a tweet you want to reply to, or any topic you want a GIF for.</p>
+        <p>Enter a tweet or topic to find the perfect GIF.</p>
     </div>
     """, unsafe_allow_html=True)
     
