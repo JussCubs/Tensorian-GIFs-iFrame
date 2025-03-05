@@ -42,7 +42,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     """)
     
     # Don't limit trending tags
-    prompt = f"""Analyze this tweet and extract exactly 3 keywords or phrases that best represent its content for searching GIFs:
+    prompt = f"""Analyze this tweet and extract exactly 3 keywords or phrases that would help find the most viral, relatable GIFs that Gen Z and young millennials would love:
 
     Tweet: "{tweet_text}"
 
@@ -55,10 +55,13 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     }}
 
     The keywords should:
-    1. Capture the main themes, emotions, or actions in the tweet
-    2. Be specific enough to find relevant GIFs
-    3. Include both literal and emotional/metaphorical concepts
-    4. Preferably include or relate to some of the trending tags when appropriate
+    1. Capture viral meme potential - think TikTok trends, internet culture, and what would make someone say "that's so relatable"
+    2. Include current slang, pop culture references, or viral moment terminology when appropriate
+    3. Focus on emotions, reactions, or vibes that resonate with 18-25 year olds
+    4. Be specific enough to find GIFs that would make the perfect reaction to the tweet
+    5. Prioritize keywords that could lead to humorous, unexpected, or slightly chaotic GIFs
+    6. Consider what would make someone want to share or repost the GIF response
+    7. Preferably include or relate to some of the trending tags when they align with current meme culture
     """
     
     llm_start = time.time()
@@ -66,7 +69,7 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
         model="gpt-4o-mini",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": "You are an expert at analyzing social media content and extracting relevant keywords."},
+            {"role": "system", "content": "You are an expert at internet culture, viral content, and Gen Z humor. You understand what makes content shareable and relatable to younger audiences."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -162,7 +165,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         for gif in gifs
     ]
     
-    prompt = f"""Given this tweet and list of GIFs, rank the most relevant GIFs for a response.
+    prompt = f"""Given this tweet and list of GIFs, rank the GIFs that would make the most viral, shareable, and relatable response that Gen Z and young millennials would love.
 
     Tweet: "{tweet_text}"
 
@@ -177,12 +180,17 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         ]
     }}
 
-    Consider:
-    1. How well the GIF captures the tweet's emotion
-    2. Visual relevance to the tweet's content
-    3. Appropriateness as a response
-    4. Humor and creativity of the match
-
+    When ranking, prioritize GIFs that:
+    1. Would make someone say "that's so me" or "I feel seen" - highly relatable content
+    2. Have viral potential - would make someone want to share, save, or repost
+    3. Capture current internet humor, meme formats, and Gen Z sensibilities
+    4. Feel authentic and not corporate or cringe - should be something a 25-year-old would actually use
+    5. Could work as a perfect reaction image that adds humor or emotional context
+    6. Might reference popular culture in ways that resonate with younger audiences
+    7. Have unexpected or slightly chaotic energy that makes them memorable
+    8. Would work well as a response on Twitter/X, TikTok, or Instagram
+    
+    Think about what would make the perfect reaction GIF that would get likes, shares, and make the response go viral.
     Return exactly 24 GIFs or fewer if there aren't enough matches.
     """
     
@@ -191,7 +199,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         model="gpt-4o-mini",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": "You are an expert at matching GIFs to tweets. Return ONLY the exact JSON format requested."},
+            {"role": "system", "content": "You are an expert on internet culture, viral content, and Gen Z humor. You understand exactly what makes GIFs shareable and relatable to younger audiences. Return ONLY the exact JSON format requested."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -228,7 +236,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     return rankings, f"Ranking GIFs: {total_time:.2f}s (LLM: {llm_time:.2f}s)\n"
 
 def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, process_display) -> list:
-    """Process a tweet and rank GIFs based on relevance using GPT-4o-mini for speed."""
+    """Process a tweet and rank GIFs based on viral potential using GPT-4o-mini for speed."""
     timing_info = ""
     
     # First, get trending GIFs to extract popular tags
@@ -245,7 +253,7 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     timing_info += f"Extracting tags: {tags_time:.2f}s\n"
     
     # Extract keywords from tweet, informed by trending tags
-    process_display.markdown("   🔍 Extracting keywords with GPT-4o-mini...")
+    process_display.markdown("   🔍 Finding viral keywords with GPT-4o-mini...")
     keywords, keywords_timing = extract_keywords(tweet_text, trending_tags, process_display)
     timing_info += keywords_timing
     
@@ -260,7 +268,7 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     timing_info += f"Total search time: {search_time:.2f}s\n"
     
     # Include trending GIFs
-    process_display.markdown("   🔥 Adding trending GIFs to the mix...")
+    process_display.markdown("   🔥 Adding trending GIFs to the mix for maximum viral potential...")
     all_gifs.extend(trending_gifs)
     
     # Remove duplicate GIFs based on ID
@@ -271,7 +279,7 @@ def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, pr
     timing_info += f"Deduplicating GIFs: {dedup_time:.2f}s\n"
     
     # Rank GIFs using GPT-4o-mini for speed
-    process_display.markdown("   🤖 Ranking GIFs with GPT-4o-mini (faster model)...")
+    process_display.markdown("   🤖 Finding the most viral, relatable GIFs with GPT-4o-mini...")
     ranked_gifs, ranking_timing = rank_gifs(tweet_text, list(unique_gifs.values()), process_display)
     timing_info += ranking_timing
     
