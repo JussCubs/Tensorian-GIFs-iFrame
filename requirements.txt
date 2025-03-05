@@ -1,3 +1,6 @@
 requests
 Pillow
-urllib3 
+urllib3
+openai
+python-dotenv
+tenacity 
