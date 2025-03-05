@@ -397,7 +397,7 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    if st.button("↺ New Search", key="new_search_results_view", use_container_width=True):
+    if st.button("↺ New Search", key=f"new_search_results_view_{id(ranked_gifs)}", use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None
@@ -458,8 +458,9 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             </div>
             """, unsafe_allow_html=True)
             
-            # Add a button below the card
-            if st.button(button_label, key=f"gif_button_{i}_{gif_id}", use_container_width=True):
+            # Add a button below the card with a truly unique key
+            unique_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}"
+            if st.button(button_label, key=unique_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
@@ -512,7 +513,7 @@ def main():
     st.markdown('<div class="input-container">', unsafe_allow_html=True)
     
     # Tweet input with increased height and previous value
-    tweet = st.text_area("Enter a tweet:", 
+    tweet = st.text_area("Enter a tweet you want to reply to, or any topic you want a GIF for:", 
                         value=st.session_state.get('current_tweet', ''),
                         height=200)
     
@@ -579,7 +580,7 @@ def main():
                 error_message += traceback.format_exc()
                 st.error(error_message)
         else:
-            st.warning("Please enter a tweet to analyze.")
+            st.warning("Please enter a tweet or topic to analyze.")
     
     # If we have results in session state, display them
     if hasattr(st.session_state, 'ranked_gifs') and st.session_state.ranked_gifs is not None:
