@@ -1,9 +1,10 @@
 import streamlit as st
 import traceback
+import time
 
 # Set page config must be the first Streamlit command
 st.set_page_config(
-    page_title="3look.io GIF Suggester",
+    page_title="Tensorians GIF Maker",
     page_icon="🎬",
     layout="wide"
 )
@@ -101,6 +102,16 @@ st.markdown("""
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+    .timing-info {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #333;
+        border-left: 3px solid #666;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -119,8 +130,11 @@ HEADERS = {
     "sec-fetch-site": "same-origin"
 }
 
-def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords):
+def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
+    # Display timing information
+    st.markdown(f"<div class='timing-info'>{timing_info}</div>", unsafe_allow_html=True)
+    
     # Display extracted keywords
     st.markdown("<div class='keywords'><strong>🔍 Keywords:</strong> " + 
                 " ".join([f"<span class='keyword-tag'>{keyword}</span>" for keyword in keywords]) + 
@@ -189,7 +203,7 @@ def main():
     process_display = st.empty()
     
     # App title
-    st.title("🎬 3look.io GIF Suggester")
+    st.title("🎬 Tensorians GIF Maker")
     st.markdown("Enter a tweet and get AI-powered GIF suggestions.")
     
     # If we're showing details for a specific GIF, display that instead of the main UI
@@ -208,6 +222,10 @@ def main():
                 st.session_state.ranked_gifs = None
                 st.session_state.all_gifs_dict = None
                 st.session_state.keywords = None
+                st.session_state.timing_info = None
+                
+                # Start timing
+                start_time = time.time()
                 
                 # Display processing steps
                 process_display.markdown("""
@@ -218,23 +236,28 @@ def main():
                 )
                 
                 # Process tweet and get ranked GIFs
-                ranked_gifs, all_gifs_dict, keywords = process_tweet_and_rank_gifs(
+                ranked_gifs, all_gifs_dict, keywords, timing_info = process_tweet_and_rank_gifs(
                     tweet_text=tweet,
                     api_url=BASE_URL,
                     headers=HEADERS,
-                    process_display=process_display  # Pass the display component
+                    process_display=process_display
                 )
+                
+                # Add total time
+                total_time = time.time() - start_time
+                timing_info += f"Total processing time: {total_time:.2f}s\n"
                 
                 # Store results in session state
                 st.session_state.ranked_gifs = ranked_gifs
                 st.session_state.all_gifs_dict = all_gifs_dict
                 st.session_state.keywords = keywords
+                st.session_state.timing_info = timing_info
                 
                 # Clear the process display
                 process_display.empty()
                 
                 # Display results
-                display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords)
+                display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info)
                 
             except Exception as e:
                 # Capture and display the full traceback
@@ -249,7 +272,8 @@ def main():
         display_ranked_gifs(
             st.session_state.ranked_gifs, 
             st.session_state.all_gifs_dict,
-            st.session_state.keywords
+            st.session_state.keywords,
+            st.session_state.timing_info
         )
 
 if __name__ == "__main__":

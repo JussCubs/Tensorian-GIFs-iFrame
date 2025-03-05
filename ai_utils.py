@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import streamlit as st
 import requests
 from openai import OpenAI
@@ -32,19 +33,21 @@ def get_openai_api_key():
 client = OpenAI(api_key=get_openai_api_key())
 
 def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> list:
-    """Extract keywords from a tweet using GPT-4o, informed by trending tags."""
+    """Extract keywords from a tweet using GPT-4o-mini, informed by trending tags."""
+    start_time = time.time()
     process_display.markdown("""
     ```
     ᐅ Analyzing tweet content...
     ```
     """)
     
+    # Don't limit trending tags
     prompt = f"""Analyze this tweet and extract exactly 3 keywords or phrases that best represent its content for searching GIFs:
 
     Tweet: "{tweet_text}"
 
     Here are popular tags from trending GIFs that might be relevant:
-    {trending_tags[:50]}  # Limit to first 50 tags to avoid token limits
+    {trending_tags}
 
     Return a JSON object with this format:
     {{
@@ -58,14 +61,16 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     4. Preferably include or relate to some of the trending tags when appropriate
     """
     
+    llm_start = time.time()
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": "You are an expert at analyzing social media content and extracting relevant keywords."},
             {"role": "user", "content": prompt}
         ]
     )
+    llm_time = time.time() - llm_start
     
     try:
         result = json.loads(response.choices[0].message.content)
@@ -94,7 +99,8 @@ def extract_keywords(tweet_text: str, trending_tags: list, process_display) -> l
     ```
     """.format(", ".join(keywords)))
     
-    return keywords
+    total_time = time.time() - start_time
+    return keywords, f"Keyword extraction: {total_time:.2f}s (LLM: {llm_time:.2f}s)\n"
 
 def extract_trending_tags(gifs: list) -> list:
     """Extract unique tags from a list of GIFs."""
@@ -108,54 +114,55 @@ def extract_trending_tags(gifs: list) -> list:
 
 def search_gifs(keyword: str, base_url: str, headers: dict, process_display) -> list:
     """Search GIFs using a specific keyword."""
+    start_time = time.time()
     url = f"{base_url}?cursor=&filters=query:'{keyword}',types:gif&widget=tensorians&excluded_categories[]=305e1658-f986-4879-b927-484fa945ed23&excluded_categories[]=738e63e4-d126-4c58-8d08-17d06672dee1&take=25&is_trending=false"
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             results = response.json().get("templates", [])
-            process_display.markdown(f"   Found {len(results)} GIFs for keyword '{keyword}'")
-            return results
-        return []
+            process_display.markdown(f"   Found {len(results)} GIFs for keyword '{keyword}' in {time.time() - start_time:.2f}s")
+            return results, time.time() - start_time
+        return [], time.time() - start_time
     except Exception:
-        return []
+        return [], time.time() - start_time
 
 def get_trending_gifs(page: int, base_url: str, headers: dict, process_display) -> list:
     """Get a page of trending GIFs."""
+    start_time = time.time()
     url = f"{base_url}?cursor=&filters=types:gif&widget=tensorians&excluded_categories[]=305e1658-f986-4879-b927-484fa945ed23&excluded_categories[]=738e63e4-d126-4c58-8d08-17d06672dee1&take=25&is_trending=true"
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             results = response.json().get("templates", [])
-            process_display.markdown(f"   Found {len(results)} trending GIFs")
-            return results
-        return []
+            process_display.markdown(f"   Found {len(results)} trending GIFs in {time.time() - start_time:.2f}s")
+            return results, time.time() - start_time
+        return [], time.time() - start_time
     except Exception:
-        return []
+        return [], time.time() - start_time
 
 def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
+    start_time = time.time()
     process_display.markdown("""
     ```
-    ᐅ Keywords extracted
-    
     ᐅ Found {} total GIFs to analyze
     
-    ᐅ Using GPT-4o to rank matches...
+    ᐅ Using GPT-4o-mini to rank matches...
     ```
     """.format(len(gifs)))
     
-    # Prepare GIF data for the prompt
+    # Don't limit the number of GIFs
+    
+    # Prepare GIF data for the prompt - include all fields
     gif_data = [
         {
             "id": gif["id"],
             "name": gif["name"],
-            "tags": gif.get("tags", []),
-            "preview_url": gif["previewUrl"],
-            "slug": gif["slug"]
+            "tags": gif.get("tags", []),  # Include all tags
         }
         for gif in gifs
     ]
     
-    prompt = f"""Given this tweet and list of GIFs, rank the 24 most relevant GIFs for a response.
+    prompt = f"""Given this tweet and list of GIFs, rank the most relevant GIFs for a response.
 
     Tweet: "{tweet_text}"
 
@@ -179,14 +186,16 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     Return exactly 24 GIFs or fewer if there aren't enough matches.
     """
     
+    llm_start = time.time()
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": "You are an expert at matching GIFs to tweets. Return ONLY the exact JSON format requested."},
             {"role": "user", "content": prompt}
         ]
     )
+    llm_time = time.time() - llm_start
     
     try:
         result = json.loads(response.choices[0].message.content)
@@ -197,7 +206,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         ᐅ Error parsing response. Please try again.
         ```
         """)
-        return []
+        return [], f"Ranking GIFs: Error (LLM: {llm_time:.2f}s)\n"
     
     if not rankings:
         process_display.markdown("""
@@ -205,7 +214,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         ᐅ No rankings found. Please try again later.
         ```
         """)
-        return []
+        return [], f"Ranking GIFs: No results (LLM: {llm_time:.2f}s)\n"
     
     process_display.markdown("""
     ```
@@ -215,38 +224,56 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     ```
     """.format(len(rankings)))
     
-    return rankings
+    total_time = time.time() - start_time
+    return rankings, f"Ranking GIFs: {total_time:.2f}s (LLM: {llm_time:.2f}s)\n"
 
 def process_tweet_and_rank_gifs(tweet_text: str, api_url: str, headers: dict, process_display) -> list:
-    """Process a tweet and rank GIFs based on relevance."""
+    """Process a tweet and rank GIFs based on relevance using GPT-4o-mini for speed."""
+    timing_info = ""
+    
     # First, get trending GIFs to extract popular tags
     process_display.markdown("   🔥 Fetching trending GIFs...")
-    trending_gifs = get_trending_gifs(0, api_url, headers, process_display)
+    trending_start = time.time()
+    trending_gifs, trending_time = get_trending_gifs(0, api_url, headers, process_display)
+    timing_info += f"Fetching trending GIFs: {trending_time:.2f}s\n"
     
     # Extract tags from trending GIFs
+    tags_start = time.time()
     trending_tags = extract_trending_tags(trending_gifs)
-    process_display.markdown(f"   📊 Extracted {len(trending_tags)} unique tags from trending GIFs")
+    tags_time = time.time() - tags_start
+    process_display.markdown(f"   📊 Extracted {len(trending_tags)} unique tags from trending GIFs in {tags_time:.2f}s")
+    timing_info += f"Extracting tags: {tags_time:.2f}s\n"
     
     # Extract keywords from tweet, informed by trending tags
-    process_display.markdown("   🔍 Extracting keywords...")
-    keywords = extract_keywords(tweet_text, trending_tags, process_display)
+    process_display.markdown("   🔍 Extracting keywords with GPT-4o-mini...")
+    keywords, keywords_timing = extract_keywords(tweet_text, trending_tags, process_display)
+    timing_info += keywords_timing
     
     # Search GIFs using extracted keywords
     all_gifs = []
+    search_start = time.time()
     for keyword in keywords:
-        keyword_gifs = search_gifs(keyword, api_url, headers, process_display)
+        keyword_gifs, keyword_time = search_gifs(keyword, api_url, headers, process_display)
         all_gifs.extend(keyword_gifs)
+        timing_info += f"Search '{keyword}': {keyword_time:.2f}s\n"
+    search_time = time.time() - search_start
+    timing_info += f"Total search time: {search_time:.2f}s\n"
     
     # Include trending GIFs
     process_display.markdown("   🔥 Adding trending GIFs to the mix...")
     all_gifs.extend(trending_gifs)
     
     # Remove duplicate GIFs based on ID
+    dedup_start = time.time()
     unique_gifs = {gif["id"]: gif for gif in all_gifs}
-    process_display.markdown(f"   ✨ Found {len(unique_gifs)} unique GIFs")
+    dedup_time = time.time() - dedup_start
+    process_display.markdown(f"   ✨ Found {len(unique_gifs)} unique GIFs in {dedup_time:.2f}s")
+    timing_info += f"Deduplicating GIFs: {dedup_time:.2f}s\n"
     
-    # Rank GIFs
-    ranked_gifs = rank_gifs(tweet_text, list(unique_gifs.values()), process_display)
+    # Rank GIFs using GPT-4o-mini for speed
+    process_display.markdown("   🤖 Ranking GIFs with GPT-4o-mini (faster model)...")
+    ranked_gifs, ranking_timing = rank_gifs(tweet_text, list(unique_gifs.values()), process_display)
+    timing_info += ranking_timing
     
-    # Return the ranked GIFs, a dictionary of all GIFs for easy lookup, and the extracted keywords
-    return ranked_gifs, unique_gifs, keywords
+    # Return the ranked GIFs, a dictionary of all GIFs for easy lookup, the extracted keywords, and timing info
+    return ranked_gifs, unique_gifs, keywords, timing_info
