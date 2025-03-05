@@ -458,7 +458,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             </div>
             """, unsafe_allow_html=True)
             
-            # Add a button below the card with a truly unique key
+            # Create a truly unique key for each button by combining multiple identifiers
+            # Use both the index, gif_id and the object id of ranked_gifs to ensure uniqueness
             unique_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}"
             if st.button(button_label, key=unique_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
@@ -574,9 +575,10 @@ def main():
                 # Display results
                 display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info)
                 
+                # Rerun to display results
+                st.rerun()
             except Exception as e:
-                # Capture and display the full traceback
-                error_message = f"An error occurred: {str(e)}\n"
+                error_message = "An error occurred while processing your request. Please try again.\n\n"
                 error_message += traceback.format_exc()
                 st.error(error_message)
         else:
