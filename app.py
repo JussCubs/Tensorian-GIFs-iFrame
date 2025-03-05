@@ -444,12 +444,9 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if len(button_label) > 30:
                 button_label = button_label[:27] + "..."
             
-            # Create a unique ID for this GIF
-            button_id = f"gif_button_{i}_{gif_id}"
-            
-            # Display the GIF card with button inside
+            # Display the GIF card
             st.markdown(f"""
-            <div class="gif-card" id="card_{i}_{gif_id}" onclick="window.location.href='?show_details_for={gif_id}&show_details_slug={quote(gif['slug'])}'; event.preventDefault(); return false;">
+            <div class="gif-card">
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
@@ -457,18 +454,16 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
-                    <button class="view-button" onclick="window.location.href='?show_details_for={gif_id}&show_details_slug={quote(gif['slug'])}'; event.preventDefault(); return false;">{button_label}</button>
                 </div>
             </div>
             """, unsafe_allow_html=True)
             
-            # Add a hidden form to handle the navigation
-            st.markdown(f"""
-            <form id="form_{i}_{gif_id}" method="get" style="display:none;">
-                <input type="hidden" name="show_details_for" value="{gif_id}">
-                <input type="hidden" name="show_details_slug" value="{gif['slug']}">
-            </form>
-            """, unsafe_allow_html=True)
+            # Add a button below the card
+            if st.button(button_label, key=f"gif_button_{i}_{gif_id}", use_container_width=True):
+                st.session_state.show_details_for = gif_id
+                st.session_state.show_details_slug = gif['slug']
+                st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
+                st.rerun()
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
@@ -499,12 +494,6 @@ def main():
         st.session_state.show_details_slug = None
     if 'current_tweet' not in st.session_state:
         st.session_state.current_tweet = ""
-    
-    # Check URL parameters for direct navigation
-    query_params = st.query_params
-    if "show_details_for" in query_params and "show_details_slug" in query_params:
-        st.session_state.show_details_for = query_params["show_details_for"]
-        st.session_state.show_details_slug = query_params["show_details_slug"]
     
     # App header with demon emoji
     st.markdown("""
