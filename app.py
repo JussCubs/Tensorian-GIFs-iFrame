@@ -346,7 +346,7 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    if st.button("↺ New Search", key="new_search_button", use_container_width=True):
+    if st.button("↺ New Search", key="new_search_results_view", use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None
@@ -385,9 +385,6 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if tags:
                 tags_html = "<div class='tags-container'>" + "".join([f"<span class='tag'>{tag}</span>" for tag in tags[:10]]) + "</div>"
             
-            # Create a unique button key for each GIF
-            button_key = f"gif_button_{i}_{gif_id}"
-            
             # Get the GIF name and create a button label
             gif_name = gif.get('name', 'GIF')
             button_label = f"View {gif_name}"
@@ -396,16 +393,22 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if len(button_label) > 30:
                 button_label = button_label[:27] + "..."
             
-            # Create a hidden button that will be triggered by clicking the GIF
-            if st.button("", key=button_key, help="Click to view details", use_container_width=True):
+            # Create a button for each GIF that navigates to details
+            if st.button(button_label, key=f"gif_button_{i}_{gif_id}", use_container_width=True):
+                # Store GIF details in session state
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
+                # Force a rerun to show the details view
                 st.rerun()
             
-            # Display the GIF card with onclick to trigger the button and button inside the card
+            # Display the GIF card with onclick that directly sets session state and triggers rerun
             st.markdown(f"""
-            <div class="gif-card" onclick="document.getElementById('{button_key}').click()">
+            <div class="gif-card" onclick="
+                (function() {{
+                    const key = 'gif_button_{i}_{gif_id}';
+                    document.getElementById(key).click();
+                }})();">
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
@@ -413,7 +416,6 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
-                    <button class="view-button" onclick="document.getElementById('{button_key}').click()">{button_label}</button>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -421,8 +423,10 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
     # Back button at the top with unique key
-    st.button("← Back to Results", key="back_to_results_top_button", use_container_width=True, 
-              on_click=lambda: back_to_results())
+    if st.button("← Back to Results", key="back_to_results_top_button", use_container_width=True):
+        st.session_state.show_details_for = None
+        st.session_state.show_details_slug = None
+        st.rerun()
     
     st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
     
@@ -432,14 +436,10 @@ def show_gif_details(gif_slug):
     """, unsafe_allow_html=True)
     
     # Back button at the bottom with unique key
-    st.button("← Back to Results", key="back_to_results_bottom_button", use_container_width=True,
-              on_click=lambda: back_to_results())
-
-def back_to_results():
-    """Helper function to go back to results."""
-    st.session_state.show_details_for = None
-    st.session_state.show_details_slug = None
-    st.rerun()
+    if st.button("← Back to Results", key="back_to_results_bottom_button", use_container_width=True):
+        st.session_state.show_details_for = None
+        st.session_state.show_details_slug = None
+        st.rerun()
 
 def main():
     # Initialize session state for showing details
@@ -472,7 +472,7 @@ def main():
                         height=200)
     
     # Process button with unique key
-    analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button", use_container_width=True)
+    analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button_main", use_container_width=True)
     
     # Create a placeholder for the process display inside the input container
     process_display = st.empty()
