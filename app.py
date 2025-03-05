@@ -397,7 +397,9 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    if st.button("↺ New Search", key=f"new_search_results_view_{id(ranked_gifs)}", use_container_width=True):
+    # Use a more unique key by combining the id of ranked_gifs with a timestamp
+    unique_key = f"new_search_results_view_{id(ranked_gifs)}_{int(time.time())}"
+    if st.button("↺ New Search", key=unique_key, use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None
@@ -459,8 +461,9 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             """, unsafe_allow_html=True)
             
             # Add a button below the card with a truly unique key
-            unique_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}"
-            if st.button(button_label, key=unique_key, use_container_width=True):
+            # Use a combination of index, gif_id, and timestamp to ensure uniqueness
+            unique_button_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}_{int(time.time()*1000) + i}"
+            if st.button(button_label, key=unique_button_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
@@ -469,7 +472,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
     # Back button at the top with unique key
-    if st.button("← Back to Results", key="back_to_results_top_button", use_container_width=True):
+    top_button_key = f"back_to_results_top_button_{int(time.time())}"
+    if st.button("← Back to Results", key=top_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
         st.rerun()
@@ -482,7 +486,8 @@ def show_gif_details(gif_slug):
     """, unsafe_allow_html=True)
     
     # Back button at the bottom with unique key
-    if st.button("← Back to Results", key="back_to_results_bottom_button", use_container_width=True):
+    bottom_button_key = f"back_to_results_bottom_button_{int(time.time())}"
+    if st.button("← Back to Results", key=bottom_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
         st.rerun()
@@ -517,8 +522,9 @@ def main():
                         value=st.session_state.get('current_tweet', ''),
                         height=200)
     
-    # Process button with unique key
-    analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button_main", use_container_width=True)
+    # Process button with unique key that includes timestamp
+    analyze_button_key = f"analyze_button_main_{int(time.time())}"
+    analyze_clicked = st.button("Analyze & Find GIFs", key=analyze_button_key, use_container_width=True)
     
     # Create a placeholder for the process display inside the input container
     process_display = st.empty()
