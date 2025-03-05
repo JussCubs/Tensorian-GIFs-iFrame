@@ -4,7 +4,7 @@ import time
 
 # Set page config must be the first Streamlit command
 st.set_page_config(
-    page_title="Tensorians GIF Maker",
+    page_title="Tensorians GIF Maker 😈",
     page_icon="😈",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -19,16 +19,26 @@ st.markdown("""
 <style>
     /* Modern Dark Theme */
     :root {
-        --primary-color: #0100FF;
-        --primary-light: #3D3DFF;
-        --primary-dark: #0000CC;
-        --dark-bg: #121212;
-        --card-bg: #1E1E1E;
+        --primary-color: #6200EA;
+        --primary-light: #7c4dff;
         --text-primary: #FFFFFF;
-        --text-secondary: #CCCCCC;
-        --accent-color: #0100FF;
+        --text-secondary: #B0B0B0;
+        --background-primary: #121212;
+        --background-secondary: #1E1E1E;
+        --background-tertiary: #2A2A2A;
+        --accent-color: #FF4081;
     }
     
+    /* Add Open Graph metadata for better Discord sharing */
+    </style>
+    
+    <!-- Open Graph / Discord Preview Metadata -->
+    <meta property="og:title" content="Tensorians GIF Maker 😈">
+    <meta property="og:description" content="AI-powered GIF suggestions with a devilish twist 😈">
+    <meta property="og:image" content="https://em-content.zobj.net/thumbs/240/apple/354/smiling-face-with-horns_1f608.png">
+    <meta name="theme-color" content="#6200EA">
+    
+    <style>
     /* Global Styles */
     .main {
         padding: 0;
@@ -376,6 +386,28 @@ st.markdown("""
     #MainMenu, footer, header {
         visibility: hidden;
     }
+    
+    .demon-emoji {
+        font-size: 1.5em;
+        vertical-align: middle;
+        margin-left: 5px;
+        display: inline-block;
+        transform: translateY(-2px);
+    }
+    
+    .demon-emoji-large {
+        font-size: 2em;
+        vertical-align: middle;
+        margin-left: 8px;
+        display: inline-block;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -397,7 +429,7 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    if st.button("↺ New Search", key=f"new_search_results_view_{id(ranked_gifs)}", use_container_width=True):
+    if st.button("↺ New Search 😈", key=f"new_search_results_view_{id(ranked_gifs)}", use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
         st.session_state.keywords = None
@@ -460,7 +492,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             
             # Add a button below the card with a truly unique key
             unique_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}"
-            if st.button(button_label, key=unique_key, use_container_width=True):
+            if st.button(f"{button_label} 😈", key=unique_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
@@ -499,8 +531,8 @@ def main():
     # App header with demon emoji
     st.markdown("""
     <div class="header">
-        <h1>Tensorians GIF Maker 😈</h1>
-        <p>Enter a tweet and get AI-powered GIF suggestions.</p>
+        <h1>Tensorians GIF Maker <span class="demon-emoji-large">😈</span></h1>
+        <p>Enter a tweet and get AI-powered GIF suggestions with a devilish twist <span class="demon-emoji">😈</span></p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -518,7 +550,7 @@ def main():
                         height=200)
     
     # Process button with unique key
-    analyze_clicked = st.button("Analyze & Find GIFs", key="analyze_button_main", use_container_width=True)
+    analyze_clicked = st.button("Analyze & Find GIFs 😈", key="analyze_button_main", use_container_width=True)
     
     # Create a placeholder for the process display inside the input container
     process_display = st.empty()
