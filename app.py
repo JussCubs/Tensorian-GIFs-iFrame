@@ -5,8 +5,9 @@ import time
 # Set page config must be the first Streamlit command
 st.set_page_config(
     page_title="Tensorians GIF Maker",
-    page_icon="🎬",
-    layout="wide"
+    page_icon="��",
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 import requests
@@ -107,6 +108,11 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(1, 0, 255, 0.3) !important;
     }
     
+    /* Hide default Streamlit button */
+    .gif-button {
+        display: none !important;
+    }
+    
     /* GIF Card Styling */
     .gif-card {
         background-color: var(--card-bg);
@@ -147,6 +153,9 @@ st.markdown("""
     
     .gif-info {
         padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
     }
     
     .gif-card h3 {
@@ -173,6 +182,7 @@ st.markdown("""
         overflow-y: auto;
         scrollbar-width: thin;
         scrollbar-color: var(--primary-color) #333;
+        margin-bottom: auto;
     }
     
     .tags-container::-webkit-scrollbar {
@@ -215,11 +225,14 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
     }
     
     .view-button:hover {
         background-color: var(--primary-light);
         box-shadow: 0 4px 12px rgba(1, 0, 255, 0.3);
+        transform: translateY(-2px);
     }
     
     /* Keywords and Timing Info */
@@ -265,9 +278,21 @@ st.markdown("""
         display: inline-block;
     }
     
-    /* Hide the streamlit button label */
-    .gif-button-container {
-        display: none !important;
+    /* Processing container */
+    .processing-container {
+        background-color: var(--card-bg);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin: 1rem 0 1.5rem 0;
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .processing-container pre {
+        color: var(--text-secondary);
+        margin: 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
     }
     
     /* iframe container */
@@ -277,15 +302,6 @@ st.markdown("""
         border: none;
         border-radius: 10px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* Processing container */
-    .processing-container {
-        background-color: var(--card-bg);
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        margin: 1rem 0 1.5rem 0;
-        border-left: 4px solid var(--primary-color);
     }
     
     /* Mobile optimizations */
@@ -306,6 +322,10 @@ st.markdown("""
             padding: 0.8rem 1rem !important;
             font-size: 1rem !important;
         }
+        
+        .processing-container {
+            padding: 0.8rem 1rem;
+        }
     }
     
     @media (max-width: 576px) {
@@ -324,6 +344,28 @@ st.markdown("""
         .gif-info {
             padding: 0.8rem;
         }
+        
+        .view-button {
+            padding: 0.7rem 0.5rem;
+            font-size: 0.8rem;
+        }
+    }
+    
+    /* Fix for Streamlit components */
+    .block-container {
+        padding-top: 0 !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 100% !important;
+    }
+    
+    .main .block-container {
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Hide Streamlit branding */
+    #MainMenu, footer, header {
+        visibility: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -393,22 +435,22 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if len(button_label) > 30:
                 button_label = button_label[:27] + "..."
             
-            # Create a button for each GIF that navigates to details
-            if st.button(button_label, key=f"gif_button_{i}_{gif_id}", use_container_width=True):
-                # Store GIF details in session state
-                st.session_state.show_details_for = gif_id
-                st.session_state.show_details_slug = gif['slug']
-                st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
-                # Force a rerun to show the details view
-                st.rerun()
+            # Create a hidden button for each GIF that navigates to details
+            button_key = f"gif_button_{i}_{gif_id}"
+            with st.container():
+                st.markdown(f"<div class='gif-button'>", unsafe_allow_html=True)
+                if st.button("", key=button_key):
+                    # Store GIF details in session state
+                    st.session_state.show_details_for = gif_id
+                    st.session_state.show_details_slug = gif['slug']
+                    st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
+                    # Force a rerun to show the details view
+                    st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
             
             # Display the GIF card with onclick that directly sets session state and triggers rerun
             st.markdown(f"""
-            <div class="gif-card" onclick="
-                (function() {{
-                    const key = 'gif_button_{i}_{gif_id}';
-                    document.getElementById(key).click();
-                }})();">
+            <div class="gif-card" onclick="document.getElementById('{button_key}').click()">
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
@@ -416,6 +458,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
+                    <button class="view-button" onclick="document.getElementById('{button_key}').click()">{button_label}</button>
                 </div>
             </div>
             """, unsafe_allow_html=True)
