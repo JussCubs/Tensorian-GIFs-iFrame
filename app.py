@@ -78,6 +78,9 @@ st.markdown("""
         color: var(--text-primary) !important;
         border: 1px solid #333 !important;
         border-radius: 8px !important;
+        min-height: 150px !important;
+        font-size: 1.1rem !important;
+        line-height: 1.5 !important;
     }
     
     .stTextArea textarea:focus {
@@ -295,6 +298,16 @@ HEADERS = {
 
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
+    # Navigation buttons
+    cols = st.columns([1, 1])
+    with cols[0]:
+        if st.button("↺ Get New Suggestions", use_container_width=True):
+            st.session_state.ranked_gifs = None
+            st.session_state.all_gifs_dict = None
+            st.session_state.keywords = None
+            st.session_state.timing_info = None
+            st.rerun()
+    
     # Display timing information
     st.markdown(f"<div class='timing-info'>{timing_info}</div>", unsafe_allow_html=True)
     
@@ -332,17 +345,15 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             # Create a container for the button with a class to hide it
             with st.container():
                 # Store the GIF ID and slug in session state when clicked
-                button = st.button(f"GIF Card {i}", key=f"gif_card_{i}_{gif_id}", help="Click to view details", use_container_width=True)
-                st.markdown("<div class='gif-button-container'></div>", unsafe_allow_html=True)
-                
-                if button:
+                if st.button(f"View GIF {i}", key=f"gif_card_{i}_{gif_id}", help="Click to view details", use_container_width=True):
                     st.session_state.show_details_for = gif_id
                     st.session_state.show_details_slug = gif['slug']
+                    st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
                     st.rerun()
             
             # Display the GIF card
             st.markdown(f"""
-            <div class="gif-card" onclick="window.open('{gif_url}', '_blank')">
+            <div class="gif-card" onclick="document.getElementById('gif_card_{i}_{gif_id}').click()">
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
@@ -350,21 +361,31 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
-                    <a href="{gif_url}" class="view-button" target="_blank">USE THIS GIF</a>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
+    # Navigation buttons
+    cols = st.columns([1, 1])
+    with cols[0]:
+        if st.button("← Back to Results", use_container_width=True):
+            st.session_state.show_details_for = None
+            st.session_state.show_details_slug = None
+            st.rerun()
+    with cols[1]:
+        if st.button("↺ Start New Search", use_container_width=True):
+            st.session_state.show_details_for = None
+            st.session_state.show_details_slug = None
+            st.session_state.ranked_gifs = None
+            st.session_state.all_gifs_dict = None
+            st.session_state.keywords = None
+            st.session_state.timing_info = None
+            st.session_state.current_tweet = ""
+            st.rerun()
     
-    # Add a back button
-    if st.button("← Back to Results"):
-        # Clear the session state and rerun to go back to results
-        st.session_state.show_details_for = None
-        st.session_state.show_details_slug = None
-        st.rerun()
+    st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
     
     # Display the iframe with the GIF details
     st.markdown(f"""
@@ -377,6 +398,8 @@ def main():
         st.session_state.show_details_for = None
     if 'show_details_slug' not in st.session_state:
         st.session_state.show_details_slug = None
+    if 'current_tweet' not in st.session_state:
+        st.session_state.current_tweet = ""
     
     # Create a placeholder for the process display
     process_display = st.empty()
@@ -397,13 +420,18 @@ def main():
     # Input container
     st.markdown('<div class="input-container">', unsafe_allow_html=True)
     
-    # Tweet input
-    tweet = st.text_area("Enter a tweet:", height=100)
+    # Tweet input with increased height and previous value
+    tweet = st.text_area("Enter a tweet:", 
+                        value=st.session_state.get('current_tweet', ''),
+                        height=200)
     
     # Process button
     if st.button("Analyze & Find GIFs"):
         if tweet:
             try:
+                # Store current tweet
+                st.session_state.current_tweet = tweet
+                
                 # Clear any previous results
                 st.session_state.ranked_gifs = None
                 st.session_state.all_gifs_dict = None
