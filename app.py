@@ -42,16 +42,20 @@ st.markdown("""
     }
     .gif-preview-container {
         width: 100%;
-        height: 200px;
+        height: 400px;
         overflow: hidden;
         border-radius: 4px;
         margin-bottom: 0.5rem;
         position: relative;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .gif-preview {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
         border-radius: 4px;
     }
     .gif-card h3 {
@@ -87,13 +91,16 @@ st.markdown("""
         display: inline-block;
         background-color: #1E88E5;
         color: white;
-        padding: 0.5rem 1rem;
+        padding: 0.7rem 1rem;
         border-radius: 4px;
         text-decoration: none;
         text-align: center;
-        font-size: 0.9rem;
+        font-size: 1rem;
+        font-weight: 600;
         margin-top: auto;
         width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .view-button:hover {
         background-color: #1565C0;
@@ -131,6 +138,10 @@ st.markdown("""
         font-size: 0.9rem;
         color: #333;
         border-left: 3px solid #666;
+    }
+    /* Hide the streamlit button label */
+    .gif-button-container {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -186,11 +197,16 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             # Create a clickable card that opens the details
             gif_url = f"https://3look.io/page/tensorians/{quote(gif['slug'])}"
             
-            # Store the GIF ID and slug in session state when clicked
-            if st.button(f"GIF Card {i}", key=f"gif_card_{i}_{gif_id}", help="Click to view details", use_container_width=True):
-                st.session_state.show_details_for = gif_id
-                st.session_state.show_details_slug = gif['slug']
-                st.rerun()
+            # Create a container for the button with a class to hide it
+            with st.container():
+                # Store the GIF ID and slug in session state when clicked
+                button = st.button(f"GIF Card {i}", key=f"gif_card_{i}_{gif_id}", help="Click to view details", use_container_width=True)
+                st.markdown("<div class='gif-button-container'></div>", unsafe_allow_html=True)
+                
+                if button:
+                    st.session_state.show_details_for = gif_id
+                    st.session_state.show_details_slug = gif['slug']
+                    st.rerun()
             
             # Display the GIF card
             st.markdown(f"""
@@ -201,7 +217,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                 <h3>{gif['name']}</h3>
                 <div class="nft-count">{nft_count} NFTs</div>
                 {tags_html}
-                <a href="{gif_url}" class="view-button" target="_blank">Use This GIF</a>
+                <a href="{gif_url}" class="view-button" target="_blank">USE THIS GIF</a>
             </div>
             """, unsafe_allow_html=True)
 
