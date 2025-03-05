@@ -16,52 +16,112 @@ from ai_utils import process_tweet_and_rank_gifs
 # Custom CSS
 st.markdown("""
 <style>
+    /* Modern Dark Theme */
     :root {
         --primary-color: #0100FF;
         --primary-light: #3D3DFF;
         --primary-dark: #0000CC;
-        --primary-bg: #F0F0FF;
-        --text-on-primary: #FFFFFF;
-        --text-light: #F0F0FF;
+        --dark-bg: #121212;
+        --card-bg: #1E1E1E;
+        --text-primary: #FFFFFF;
+        --text-secondary: #CCCCCC;
+        --accent-color: #0100FF;
     }
     
+    /* Global Styles */
     .main {
-        padding: 2rem;
-        background-color: var(--primary-bg);
+        padding: 0;
+        background-color: var(--dark-bg);
+        color: var(--text-primary);
     }
     
-    h1, h2, h3 {
-        color: var(--primary-color);
-        margin-bottom: 1rem;
+    .stApp {
+        background-color: var(--dark-bg);
     }
     
+    h1, h2, h3, h4, h5, h6, p, span, div {
+        color: var(--text-primary);
+    }
+    
+    /* Header Styling */
+    .header {
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 0 0 10px 10px;
+        margin-bottom: 2rem;
+        border-top: 4px solid var(--primary-color);
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    
+    .header p {
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Input Area */
+    .input-container {
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .stTextArea textarea {
+        background-color: #2A2A2A !important;
+        color: var(--text-primary) !important;
+        border: 1px solid #333 !important;
+        border-radius: 8px !important;
+    }
+    
+    .stTextArea textarea:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 1px var(--primary-color) !important;
+    }
+    
+    /* Button Styling */
     .stButton button {
         background-color: var(--primary-color) !important;
-        color: var(--text-on-primary) !important;
+        color: var(--text-primary) !important;
         border: none !important;
+        padding: 0.6rem 1.5rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
     }
     
     .stButton button:hover {
-        background-color: var(--primary-dark) !important;
+        background-color: var(--primary-light) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(1, 0, 255, 0.3) !important;
     }
     
+    /* GIF Card Styling */
     .gif-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
+        background-color: var(--card-bg);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         height: 100%;
         display: flex;
         flex-direction: column;
         cursor: pointer;
+        border: 1px solid #333;
+        margin-bottom: 1.5rem;
     }
     
     .gif-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 25px rgba(1, 0, 255, 0.25);
         border-color: var(--primary-color);
     }
     
@@ -69,10 +129,8 @@ st.markdown("""
         width: 100%;
         height: 400px;
         overflow: hidden;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
         position: relative;
-        background-color: white;
+        background-color: #000;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -82,98 +140,126 @@ st.markdown("""
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
-        border-radius: 4px;
+    }
+    
+    .gif-info {
+        padding: 1rem;
     }
     
     .gif-card h3 {
-        font-size: 1rem;
-        margin: 0.5rem 0;
-        color: var(--primary-color);
+        font-size: 1.1rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-primary);
+        font-weight: 600;
     }
     
     .nft-count {
         display: inline-block;
-        background-color: var(--primary-bg);
-        color: var(--primary-color);
-        padding: 0.2rem 0.5rem;
+        background-color: rgba(1, 0, 255, 0.15);
+        color: var(--primary-light);
+        padding: 0.3rem 0.6rem;
         border-radius: 4px;
         font-size: 0.8rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
+        font-weight: 500;
     }
     
     .tags-container {
-        margin: 0.5rem 0;
-        max-height: 60px;
+        margin: 0.8rem 0;
+        max-height: 70px;
         overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) #333;
+    }
+    
+    .tags-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .tags-container::-webkit-scrollbar-track {
+        background: #333;
+        border-radius: 10px;
+    }
+    
+    .tags-container::-webkit-scrollbar-thumb {
+        background-color: var(--primary-color);
+        border-radius: 10px;
     }
     
     .tag {
         display: inline-block;
-        background-color: var(--primary-bg);
-        color: var(--primary-dark);
-        padding: 0.1rem 0.4rem;
-        border-radius: 3px;
-        font-size: 0.7rem;
-        margin-right: 0.3rem;
-        margin-bottom: 0.3rem;
+        background-color: #2A2A2A;
+        color: var(--text-secondary);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
     }
     
     .view-button {
-        display: inline-block;
+        display: block;
         background-color: var(--primary-color);
-        color: var(--text-on-primary);
-        padding: 0.7rem 1rem;
-        border-radius: 4px;
+        color: var(--text-primary);
+        padding: 0.8rem 1rem;
+        border-radius: 6px;
         text-decoration: none;
         text-align: center;
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 600;
-        margin-top: auto;
+        margin-top: 0.8rem;
         width: 100%;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        transition: all 0.3s ease;
     }
     
     .view-button:hover {
-        background-color: var(--primary-dark);
+        background-color: var(--primary-light);
+        box-shadow: 0 4px 12px rgba(1, 0, 255, 0.3);
     }
     
+    /* Keywords and Timing Info */
     .keywords {
-        background-color: var(--primary-bg);
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        border-left: 3px solid var(--primary-color);
+        background-color: var(--card-bg);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid var(--primary-color);
     }
     
     .keyword-tag {
         display: inline-block;
-        background-color: var(--primary-color);
-        color: var(--text-on-primary);
-        padding: 0.3rem 0.6rem;
-        border-radius: 20px;
-        margin-right: 0.5rem;
+        background-color: rgba(1, 0, 255, 0.15);
+        color: var(--primary-light);
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        margin-right: 0.6rem;
+        margin-bottom: 0.4rem;
         font-size: 0.9rem;
-        border: 1px solid var(--primary-light);
-    }
-    
-    .iframe-container {
-        width: 100%;
-        height: 80vh;
-        border: none;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        font-weight: 500;
     }
     
     .timing-info {
-        font-family: monospace;
-        background-color: var(--primary-bg);
-        padding: 0.5rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
+        font-family: 'Courier New', monospace;
+        background-color: var(--card-bg);
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
         font-size: 0.9rem;
-        color: var(--primary-dark);
-        border-left: 3px solid var(--primary-color);
+        color: var(--text-secondary);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    /* Section Headers */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1.5rem 0 1rem 0;
+        color: var(--text-primary);
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 0.5rem;
+        display: inline-block;
     }
     
     /* Hide the streamlit button label */
@@ -181,19 +267,13 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Style the text area */
-    .stTextArea textarea {
-        border-color: var(--primary-color) !important;
-    }
-    
-    .stTextArea textarea:focus {
-        border-color: var(--primary-dark) !important;
-        box-shadow: 0 0 0 1px var(--primary-light) !important;
-    }
-    
-    /* Style the app background */
-    .stApp {
-        background-color: var(--primary-bg);
+    /* iframe container */
+    .iframe-container {
+        width: 100%;
+        height: 80vh;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -223,7 +303,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                 " ".join([f"<span class='keyword-tag'>{keyword}</span>" for keyword in keywords]) + 
                 "</div>", unsafe_allow_html=True)
     
-    st.markdown("### Top GIF Matches")
+    st.markdown("<div class='section-header'>Top GIF Matches</div>", unsafe_allow_html=True)
     
     # Create three columns
     cols = st.columns(3)
@@ -266,16 +346,18 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
-                <h3>{gif['name']}</h3>
-                <div class="nft-count">{nft_count} NFTs</div>
-                {tags_html}
-                <a href="{gif_url}" class="view-button" target="_blank">USE THIS GIF</a>
+                <div class="gif-info">
+                    <h3>{gif['name']}</h3>
+                    <div class="nft-count">{nft_count} NFTs</div>
+                    {tags_html}
+                    <a href="{gif_url}" class="view-button" target="_blank">USE THIS GIF</a>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    st.markdown("### GIF Details")
+    st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
     
     # Add a back button
     if st.button("← Back to Results"):
@@ -299,14 +381,21 @@ def main():
     # Create a placeholder for the process display
     process_display = st.empty()
     
-    # App title with demon emoji at the end
-    st.title("Tensorians GIF Maker 👿")
-    st.markdown("Enter a tweet and get AI-powered GIF suggestions.")
+    # App header with demon emoji
+    st.markdown("""
+    <div class="header">
+        <h1>Tensorians GIF Maker 👿</h1>
+        <p>Enter a tweet and get AI-powered GIF suggestions.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # If we're showing details for a specific GIF, display that instead of the main UI
     if st.session_state.show_details_for and st.session_state.show_details_slug:
         show_gif_details(st.session_state.show_details_slug)
         return
+    
+    # Input container
+    st.markdown('<div class="input-container">', unsafe_allow_html=True)
     
     # Tweet input
     tweet = st.text_area("Enter a tweet:", height=100)
@@ -364,8 +453,10 @@ def main():
         else:
             st.warning("Please enter a tweet to analyze.")
     
+    st.markdown('</div>', unsafe_allow_html=True)
+    
     # If we have results in session state, display them
-    elif hasattr(st.session_state, 'ranked_gifs') and st.session_state.ranked_gifs is not None:
+    if hasattr(st.session_state, 'ranked_gifs') and st.session_state.ranked_gifs is not None:
         display_ranked_gifs(
             st.session_state.ranked_gifs, 
             st.session_state.all_gifs_dict,
