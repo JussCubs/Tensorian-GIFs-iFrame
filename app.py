@@ -1,6 +1,7 @@
 import streamlit as st
 import traceback
 import time
+import uuid  # Add UUID for truly unique keys
 
 # Set page config must be the first Streamlit command
 st.set_page_config(
@@ -397,8 +398,8 @@ HEADERS = {
 def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     """Display the ranked GIFs in a grid."""
     # Navigation buttons - only in main results view
-    # Use a more unique key by combining the id of ranked_gifs with a timestamp
-    unique_key = f"new_search_results_view_{id(ranked_gifs)}_{int(time.time())}"
+    # Use UUID for guaranteed uniqueness
+    unique_key = f"new_search_{str(uuid.uuid4())}"
     if st.button("↺ New Search", key=unique_key, use_container_width=True):
         st.session_state.ranked_gifs = None
         st.session_state.all_gifs_dict = None
@@ -461,8 +462,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             """, unsafe_allow_html=True)
             
             # Add a button below the card with a truly unique key
-            # Use a combination of index, gif_id, and timestamp to ensure uniqueness
-            unique_button_key = f"gif_button_{i}_{gif_id}_{id(ranked_gifs)}_{int(time.time()*1000) + i}"
+            # Use UUID for guaranteed uniqueness
+            unique_button_key = f"gif_button_{str(uuid.uuid4())}"
             if st.button(button_label, key=unique_button_key, use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
@@ -471,8 +472,8 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    # Back button at the top with unique key
-    top_button_key = f"back_to_results_top_button_{int(time.time())}"
+    # Back button at the top with unique key using UUID
+    top_button_key = f"back_top_{str(uuid.uuid4())}"
     if st.button("← Back to Results", key=top_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
@@ -485,8 +486,8 @@ def show_gif_details(gif_slug):
     <iframe src="https://3look.io/page/tensorians/{quote(gif_slug)}" class="iframe-container"></iframe>
     """, unsafe_allow_html=True)
     
-    # Back button at the bottom with unique key
-    bottom_button_key = f"back_to_results_bottom_button_{int(time.time())}"
+    # Back button at the bottom with unique key using UUID
+    bottom_button_key = f"back_bottom_{str(uuid.uuid4())}"
     if st.button("← Back to Results", key=bottom_button_key, use_container_width=True):
         st.session_state.show_details_for = None
         st.session_state.show_details_slug = None
@@ -522,8 +523,8 @@ def main():
                         value=st.session_state.get('current_tweet', ''),
                         height=200)
     
-    # Process button with unique key that includes timestamp
-    analyze_button_key = f"analyze_button_main_{int(time.time())}"
+    # Process button with unique key using UUID for guaranteed uniqueness
+    analyze_button_key = f"analyze_button_{str(uuid.uuid4())}"
     analyze_clicked = st.button("Analyze & Find GIFs", key=analyze_button_key, use_container_width=True)
     
     # Create a placeholder for the process display inside the input container
