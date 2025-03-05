@@ -5,7 +5,7 @@ import time
 # Set page config must be the first Streamlit command
 st.set_page_config(
     page_title="Tensorians GIF Maker",
-    page_icon="🎬",
+    page_icon="😈",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -258,7 +258,7 @@ st.markdown("""
         border-radius: 8px;
         margin-bottom: 1.5rem;
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: var(--text-primary) !important;
         border-left: 4px solid var(--primary-color);
     }
     
@@ -498,7 +498,7 @@ def main():
     # App header with demon emoji
     st.markdown("""
     <div class="header">
-        <h1>Tensorians GIF Maker 👿</h1>
+        <h1>Tensorians GIF Maker 😈</h1>
         <p>Enter a tweet and get AI-powered GIF suggestions.</p>
     </div>
     """, unsafe_allow_html=True)
