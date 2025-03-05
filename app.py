@@ -522,15 +522,12 @@ def show_gif_details(gif_slug):
     # Add instructions about adding Tensorian faces
     st.markdown("""
     <div class="instructions-box">
-        <h3>📝 Instructions</h3>
-        <p>In the GIF maker below, you can customize this GIF with Tensorian faces! Here's how:</p>
+        <h3>Customize the GIF</h3>
         <ol>
-            <li>Click on the GIF to start customizing</li>
-            <li>Add Tensorian faces to the characters in the GIF</li>
-            <li>Adjust positioning and size as needed</li>
-            <li>Save your creation when you're done</li>
+            <li>Add Tensorian faces to characters</li>
+            <li>Adjust position and size for perfect fit</li>
+            <li>Save your creation and share</li>
         </ol>
-        <p class="tip">💡 <strong>Tip:</strong> Tensorian faces will be automatically applied to make your GIF unique and on-brand!</p>
     </div>
     """, unsafe_allow_html=True)
     
