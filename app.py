@@ -501,10 +501,10 @@ def main():
         st.session_state.current_tweet = ""
     
     # Check URL parameters for direct navigation
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     if "show_details_for" in query_params and "show_details_slug" in query_params:
-        st.session_state.show_details_for = query_params["show_details_for"][0]
-        st.session_state.show_details_slug = query_params["show_details_slug"][0]
+        st.session_state.show_details_for = query_params["show_details_for"]
+        st.session_state.show_details_slug = query_params["show_details_slug"]
     
     # App header with demon emoji
     st.markdown("""
