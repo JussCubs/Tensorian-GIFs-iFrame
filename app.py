@@ -5,7 +5,7 @@ import time
 # Set page config must be the first Streamlit command
 st.set_page_config(
     page_title="Tensorians GIF Maker",
-    page_icon="��",
+    page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -106,11 +106,6 @@ st.markdown("""
         background-color: var(--primary-light) !important;
         transform: translateY(-2px) !important;
         box-shadow: 0 4px 12px rgba(1, 0, 255, 0.3) !important;
-    }
-    
-    /* Hide default Streamlit button */
-    .gif-button {
-        display: none !important;
     }
     
     /* GIF Card Styling */
@@ -288,11 +283,17 @@ st.markdown("""
     }
     
     .processing-container pre {
-        color: var(--text-secondary);
+        color: var(--text-primary) !important;
         margin: 0;
         font-family: 'Courier New', monospace;
         font-size: 0.9rem;
         white-space: pre-wrap;
+    }
+    
+    /* Console output styling */
+    .stMarkdown div[data-testid="stMarkdownContainer"] pre {
+        color: var(--text-primary) !important;
+        background-color: var(--card-bg) !important;
     }
     
     /* iframe container */
@@ -326,6 +327,10 @@ st.markdown("""
         .processing-container {
             padding: 0.8rem 1rem;
         }
+        
+        .processing-container pre {
+            color: var(--text-primary) !important;
+        }
     }
     
     @media (max-width: 576px) {
@@ -347,6 +352,10 @@ st.markdown("""
         
         .view-button {
             padding: 0.7rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .processing-container pre {
             font-size: 0.8rem;
         }
     }
@@ -435,22 +444,12 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if len(button_label) > 30:
                 button_label = button_label[:27] + "..."
             
-            # Create a hidden button for each GIF that navigates to details
-            button_key = f"gif_button_{i}_{gif_id}"
-            with st.container():
-                st.markdown(f"<div class='gif-button'>", unsafe_allow_html=True)
-                if st.button("", key=button_key):
-                    # Store GIF details in session state
-                    st.session_state.show_details_for = gif_id
-                    st.session_state.show_details_slug = gif['slug']
-                    st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
-                    # Force a rerun to show the details view
-                    st.rerun()
-                st.markdown("</div>", unsafe_allow_html=True)
+            # Create a unique ID for this GIF
+            button_id = f"gif_button_{i}_{gif_id}"
             
-            # Display the GIF card with onclick that directly sets session state and triggers rerun
+            # Display the GIF card with button inside
             st.markdown(f"""
-            <div class="gif-card" onclick="document.getElementById('{button_key}').click()">
+            <div class="gif-card" id="card_{i}_{gif_id}" onclick="window.location.href='?show_details_for={gif_id}&show_details_slug={quote(gif['slug'])}'; event.preventDefault(); return false;">
                 <div class="gif-preview-container">
                     <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
                 </div>
@@ -458,9 +457,17 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
-                    <button class="view-button" onclick="document.getElementById('{button_key}').click()">{button_label}</button>
+                    <button class="view-button" onclick="window.location.href='?show_details_for={gif_id}&show_details_slug={quote(gif['slug'])}'; event.preventDefault(); return false;">{button_label}</button>
                 </div>
             </div>
+            """, unsafe_allow_html=True)
+            
+            # Add a hidden form to handle the navigation
+            st.markdown(f"""
+            <form id="form_{i}_{gif_id}" method="get" style="display:none;">
+                <input type="hidden" name="show_details_for" value="{gif_id}">
+                <input type="hidden" name="show_details_slug" value="{gif['slug']}">
+            </form>
             """, unsafe_allow_html=True)
 
 def show_gif_details(gif_slug):
@@ -492,6 +499,12 @@ def main():
         st.session_state.show_details_slug = None
     if 'current_tweet' not in st.session_state:
         st.session_state.current_tweet = ""
+    
+    # Check URL parameters for direct navigation
+    query_params = st.experimental_get_query_params()
+    if "show_details_for" in query_params and "show_details_slug" in query_params:
+        st.session_state.show_details_for = query_params["show_details_for"][0]
+        st.session_state.show_details_slug = query_params["show_details_slug"][0]
     
     # App header with demon emoji
     st.markdown("""
