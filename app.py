@@ -258,8 +258,48 @@ st.markdown("""
         border-radius: 8px;
         margin-bottom: 1.5rem;
         font-size: 0.9rem;
-        color: var(--text-primary) !important;
+    }
+    
+    /* Instructions Box */
+    .instructions-box {
+        background-color: var(--card-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
         border-left: 4px solid var(--primary-color);
+    }
+    
+    .instructions-box h3 {
+        color: var(--text-primary);
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .instructions-box p {
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    
+    .instructions-box ol {
+        color: var(--text-secondary);
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .instructions-box li {
+        margin-bottom: 0.5rem;
+        line-height: 1.5;
+    }
+    
+    .instructions-box .tip {
+        background-color: rgba(1, 0, 255, 0.15);
+        padding: 0.8rem;
+        border-radius: 6px;
+        color: var(--primary-light);
+        font-size: 0.9rem;
+        margin-top: 1rem;
     }
     
     /* Section Headers */
@@ -413,7 +453,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     # Display timing information
     st.markdown(f"<div class='timing-info'>{timing_info}</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='section-header'>Top GIF Matches</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>CUSTOM GIF TEMPLATES</div>", unsafe_allow_html=True)
     
     # Create three columns for desktop, two for tablet, one for mobile
     cols = st.columns(3)
@@ -438,7 +478,7 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             
             # Get the GIF name and create a button label
             gif_name = gif.get('name', 'GIF')
-            button_label = f"View {gif_name}"
+            button_label = f"Make CUSTOM {gif_name} GIF"
             
             # Truncate button label if too long
             if len(button_label) > 30:
@@ -475,7 +515,22 @@ def show_gif_details(gif_slug):
         st.session_state.show_details_slug = None
         st.rerun()
     
-    st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
+    st.markdown("<div class='section-header'>GIF MAKER</div>", unsafe_allow_html=True)
+    
+    # Add instructions about adding Tensorian faces
+    st.markdown("""
+    <div class="instructions-box">
+        <h3>📝 Instructions</h3>
+        <p>In the GIF maker below, you can customize this GIF with Tensorian faces! Here's how:</p>
+        <ol>
+            <li>Click on the GIF to start customizing</li>
+            <li>Add Tensorian faces to the characters in the GIF</li>
+            <li>Adjust positioning and size as needed</li>
+            <li>Save your creation when you're done</li>
+        </ol>
+        <p class="tip">💡 <strong>Tip:</strong> Tensorian faces will be automatically applied to make your GIF unique and on-brand!</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Display the iframe with the GIF details
     st.markdown(f"""
