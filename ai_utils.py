@@ -165,7 +165,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         for gif in gifs
     ]
     
-    prompt = f"""Given this tweet and list of GIFs, rank the GIFs that would make the most viral, shareable, and relatable response that Gen Z and young millennials would love.
+    prompt = f"""Given this tweet and list of GIFs, rank EXACTLY 24 GIFs that would make the most viral, shareable, and relatable response that Gen Z and young millennials would love.
 
     Tweet: "{tweet_text}"
 
@@ -176,7 +176,8 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         "rankings": [
             {{"id": "gif_id_1"}},
             {{"id": "gif_id_2"}},
-            {{"id": "gif_id_3"}}
+            {{"id": "gif_id_3"}},
+            ... and so on until you have EXACTLY 24 GIFs
         ]
     }}
 
@@ -191,7 +192,8 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     8. Would work well as a response on Twitter/X, TikTok, or Instagram
     
     Think about what would make the perfect reaction GIF that would get likes, shares, and make the response go viral.
-    Return exactly 24 GIFs or fewer if there aren't enough matches.
+    
+    IMPORTANT: You MUST return EXACTLY 24 GIFs in your rankings. If there aren't enough perfect matches, include the next best options to reach exactly 24. This is critical for the application to function correctly.
     """
     
     llm_start = time.time()
@@ -199,7 +201,7 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
         model="gpt-4o-mini",
         response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": "You are an expert on internet culture, viral content, and Gen Z humor. You understand exactly what makes GIFs shareable and relatable to younger audiences. Return ONLY the exact JSON format requested."},
+            {"role": "system", "content": "You are an expert on internet culture, viral content, and Gen Z humor. You understand exactly what makes GIFs shareable and relatable to younger audiences. You ALWAYS return EXACTLY 24 GIFs in your rankings as requested. Return ONLY the exact JSON format requested."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -208,6 +210,30 @@ def rank_gifs(tweet_text: str, gifs: list, process_display) -> list:
     try:
         result = json.loads(response.choices[0].message.content)
         rankings = result.get("rankings", [])
+        
+        # If we don't have enough rankings, log this issue and pad with additional GIFs if possible
+        if len(rankings) < 24 and len(gifs) >= 24:
+            process_display.markdown(f"""
+            ```
+            ᐅ Warning: Only received {len(rankings)} GIFs instead of 24. Adding additional GIFs to reach 24.
+            ```
+            """)
+            
+            # Get IDs of already ranked GIFs
+            ranked_ids = {r["id"] for r in rankings}
+            
+            # Find GIFs that aren't already ranked
+            unranked_gifs = [g for g in gifs if g["id"] not in ranked_ids]
+            
+            # Add additional GIFs until we reach 24 or run out of GIFs
+            for i, gif in enumerate(unranked_gifs):
+                if len(rankings) >= 24:
+                    break
+                rankings.append({"id": gif["id"]})
+                
+        # Ensure we only return at most 24 GIFs
+        rankings = rankings[:24]
+        
     except (json.JSONDecodeError, AttributeError):
         process_display.markdown("""
         ```
