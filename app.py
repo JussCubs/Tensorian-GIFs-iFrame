@@ -34,15 +34,25 @@ st.markdown("""
         height: 100%;
         display: flex;
         flex-direction: column;
+        cursor: pointer;
     }
     .gif-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    .gif-preview {
+    .gif-preview-container {
         width: 100%;
+        height: 200px;
+        overflow: hidden;
         border-radius: 4px;
         margin-bottom: 0.5rem;
+        position: relative;
+    }
+    .gif-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 4px;
     }
     .gif-card h3 {
         font-size: 1rem;
@@ -58,11 +68,20 @@ st.markdown("""
         font-size: 0.8rem;
         margin-bottom: 0.5rem;
     }
-    .explanation {
-        font-size: 0.9rem;
+    .tags-container {
+        margin: 0.5rem 0;
+        max-height: 60px;
+        overflow-y: auto;
+    }
+    .tag {
+        display: inline-block;
+        background-color: #f5f5f5;
         color: #666;
-        margin-bottom: 0.5rem;
-        flex-grow: 1;
+        padding: 0.1rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        margin-right: 0.3rem;
+        margin-bottom: 0.3rem;
     }
     .view-button {
         display: inline-block;
@@ -74,6 +93,7 @@ st.markdown("""
         text-align: center;
         font-size: 0.9rem;
         margin-top: auto;
+        width: 100%;
     }
     .view-button:hover {
         background-color: #1565C0;
@@ -136,11 +156,11 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
     st.markdown(f"<div class='timing-info'>{timing_info}</div>", unsafe_allow_html=True)
     
     # Display extracted keywords
-    st.markdown("<div class='keywords'><strong>🔍 Keywords:</strong> " + 
+    st.markdown("<div class='keywords'><strong>Keywords:</strong> " + 
                 " ".join([f"<span class='keyword-tag'>{keyword}</span>" for keyword in keywords]) + 
                 "</div>", unsafe_allow_html=True)
     
-    st.markdown("### 🎯 Top GIF Matches")
+    st.markdown("### Top GIF Matches")
     
     # Create three columns
     cols = st.columns(3)
@@ -154,27 +174,36 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             
         col_idx = i % 3
         with cols[col_idx]:
-            # Create a unique key for each button using both index and GIF ID
-            button_key = f"btn_{i}_{gif_id}"
-            
             # Get NFT count from the correct field
             nft_count = gif.get("amountOfNfts", 0)
             
-            st.markdown(f"""
-            <div class="gif-card">
-                <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
-                <h3>{gif['name']}</h3>
-                <div class="nft-count">🔢 {nft_count} NFTs</div>
-                <a href="https://3look.io/page/tensorians/{quote(gif['slug'])}" class="view-button" target="_blank">Use This GIF</a>
-            </div>
-            """, unsafe_allow_html=True)
+            # Get tags
+            tags = gif.get("tags", [])
+            tags_html = ""
+            if tags:
+                tags_html = "<div class='tags-container'>" + "".join([f"<span class='tag'>{tag}</span>" for tag in tags[:10]]) + "</div>"
             
-            # Add a button to show details in an iframe
-            if st.button("Show Details", key=button_key):
-                # Store the GIF ID in session state to show its details
+            # Create a clickable card that opens the details
+            gif_url = f"https://3look.io/page/tensorians/{quote(gif['slug'])}"
+            
+            # Store the GIF ID and slug in session state when clicked
+            if st.button(f"GIF Card {i}", key=f"gif_card_{i}_{gif_id}", help="Click to view details", use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.rerun()
+            
+            # Display the GIF card
+            st.markdown(f"""
+            <div class="gif-card" onclick="window.open('{gif_url}', '_blank')">
+                <div class="gif-preview-container">
+                    <img src="{gif['previewUrl']}" alt="{gif['name']}" class="gif-preview">
+                </div>
+                <h3>{gif['name']}</h3>
+                <div class="nft-count">{nft_count} NFTs</div>
+                {tags_html}
+                <a href="{gif_url}" class="view-button" target="_blank">Use This GIF</a>
+            </div>
+            """, unsafe_allow_html=True)
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
@@ -202,8 +231,8 @@ def main():
     # Create a placeholder for the process display
     process_display = st.empty()
     
-    # App title
-    st.title("🎬 Tensorians GIF Maker")
+    # App title with demon emoji at the end
+    st.title("Tensorians GIF Maker 👿")
     st.markdown("Enter a tweet and get AI-powered GIF suggestions.")
     
     # If we're showing details for a specific GIF, display that instead of the main UI
@@ -230,7 +259,7 @@ def main():
                 # Display processing steps
                 process_display.markdown("""
                 ```
-                ᐅ Processing tweet...
+                Processing tweet...
                 ```
                 """.format(tweet)
                 )
