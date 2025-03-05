@@ -396,14 +396,14 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
             if len(button_label) > 30:
                 button_label = button_label[:27] + "..."
             
-            # Store the GIF ID and slug in session state when clicked
-            if st.button(button_label, key=button_key, use_container_width=True):
+            # Create a hidden button that will be triggered by clicking the GIF
+            if st.button("", key=button_key, help="Click to view details", use_container_width=True):
                 st.session_state.show_details_for = gif_id
                 st.session_state.show_details_slug = gif['slug']
                 st.session_state.previous_tweet = st.session_state.get('current_tweet', '')
                 st.rerun()
             
-            # Display the GIF card with onclick to trigger the button
+            # Display the GIF card with onclick to trigger the button and button inside the card
             st.markdown(f"""
             <div class="gif-card" onclick="document.getElementById('{button_key}').click()">
                 <div class="gif-preview-container">
@@ -413,17 +413,16 @@ def display_ranked_gifs(ranked_gifs, all_gifs_dict, keywords, timing_info):
                     <h3>{gif['name']}</h3>
                     <div class="nft-count">{nft_count} NFTs</div>
                     {tags_html}
+                    <button class="view-button" onclick="document.getElementById('{button_key}').click()">{button_label}</button>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
 def show_gif_details(gif_slug):
     """Show GIF details in an iframe."""
-    # Back button with unique key
-    if st.button("← Back to Results", key="back_to_results_button", use_container_width=True):
-        st.session_state.show_details_for = None
-        st.session_state.show_details_slug = None
-        st.rerun()
+    # Back button at the top with unique key
+    st.button("← Back to Results", key="back_to_results_top_button", use_container_width=True, 
+              on_click=lambda: back_to_results())
     
     st.markdown("<div class='section-header'>GIF Details</div>", unsafe_allow_html=True)
     
@@ -431,6 +430,16 @@ def show_gif_details(gif_slug):
     st.markdown(f"""
     <iframe src="https://3look.io/page/tensorians/{quote(gif_slug)}" class="iframe-container"></iframe>
     """, unsafe_allow_html=True)
+    
+    # Back button at the bottom with unique key
+    st.button("← Back to Results", key="back_to_results_bottom_button", use_container_width=True,
+              on_click=lambda: back_to_results())
+
+def back_to_results():
+    """Helper function to go back to results."""
+    st.session_state.show_details_for = None
+    st.session_state.show_details_slug = None
+    st.rerun()
 
 def main():
     # Initialize session state for showing details
